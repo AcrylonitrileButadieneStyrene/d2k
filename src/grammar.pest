@@ -1,0 +1,48 @@
+WHITESPACE = _{ " " | "\t" }
+
+__used_externally = {
+    commands
+  | instruction_set_destination
+  | instruction_set_variable_value
+}
+
+commands        = _{ SOI ~ expression* ~ expression_last? ~ EOI }
+expression      = _{ statement? ~ ignored? ~ NEWLINE }
+expression_last = _{ statement? ~ ignored? }
+
+statement = _{
+    conditional
+  | instruction
+  | comment
+  | ignored
+}
+
+conditional        = ${ conditional_if ~ (WHITESPACE* ~ conditional_else)? }
+conditional_if     = ${ ^"if" ~ WHITESPACE+ ~ condition ~ WHITESPACE* ~ block }
+conditional_else   = ${ ^"else" ~ WHITESPACE+ ~ block }
+condition          = !{
+    (switch ~ comparison_partial ~ bool)
+  | (variable ~ comparison_full ~ (variable | number))
+}
+comparison_partial =  { "==" | "!=" }
+comparison_full    =  { "==" | "!=" | ">" | "<" | ">=" | "<=" }
+block              = !{ "{" ~ (ignored ~ NEWLINE)? ~ expression* ~ expression_last? ~ "}" }
+
+instruction =  { operation ~ arguments? }
+operation   = @{ ASCII_ALPHA+ ~ &WHITESPACE }
+arguments   = _{ argument ~ ("," ~ argument)* }
+argument    =  { ASCII_ALPHANUMERIC+ }
+
+comment =  { ";" ~ (!NEWLINE ~ ANY)* }
+ignored = _{ ("#" | "//") ~ (!NEWLINE ~ ANY)* }
+
+// terms
+switch   = @{ ^"S" ~ ASCII_DIGIT{4} }
+variable = @{ ^"V" ~ ASCII_DIGIT{4} }
+event    = @{ ^"E" ~ ^"V"? ~ ASCII_DIGIT{4} }
+number   = @{ ("-" | "+")? ~ ("0x" ~ ASCII_HEX_DIGIT+ | "0b" ~ ASCII_BIN_DIGIT+ | "0o" ~ ASCII_OCT_DIGIT+ | ASCII_DIGIT+) }
+bool     =  { ^"on" | ^"off" | ^"true" | ^"false" }
+
+// instruction arguments
+instruction_set_destination    = _{ SOI ~ (switch | variable) ~ EOI }
+instruction_set_variable_value = _{ SOI ~ number ~ EOI }

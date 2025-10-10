@@ -1,0 +1,10 @@
+if V0001 == 1 {
+    set V0001, 0
+} else {
+    set V0001, 1
+}
+
+# ignored
+; comment
+set V0002, 1 // test
+// ignored2
