@@ -7,7 +7,6 @@ pub fn r#if(r#if: Pair<'_, crate::grammar::Rule>, has_else: bool) -> Vec<crate::
     let mut pairs = r#if.into_inner();
     let mut condition = pairs.next().unwrap().into_inner();
     let block = pairs.next().unwrap().into_inner();
-    assert_eq!(pairs.next(), None);
 
     let variable = condition.next().unwrap();
     let variable_id = variable.as_str()[1..].parse().unwrap();

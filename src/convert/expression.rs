@@ -28,6 +28,7 @@ pub fn convert_expression(expression: Pair<'_, grammar::Rule>) -> Vec<crate::Ins
             }
         }
         grammar::Rule::instruction => crate::single(convert::instruction(expression.into_inner())),
+        grammar::Rule::assignment => convert::assigment(expression.into_inner().next().unwrap()),
         grammar::Rule::comment => crate::single((
             Instruction::Comment,
             Some(expression.as_str()[1..].trim().to_string()),

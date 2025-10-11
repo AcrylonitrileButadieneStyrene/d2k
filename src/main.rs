@@ -8,6 +8,7 @@ mod convert;
 mod grammar;
 
 type Inst = (Instruction, Option<String>);
+type Pair<'a> = pest::iterators::Pair<'a, crate::grammar::Rule>;
 
 #[derive(clap::Parser)]
 struct Args {

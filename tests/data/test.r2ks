@@ -1,10 +1,16 @@
 if V0001 == 1 {
-    set V0001, 0
+    S0001 = true
+    S0001:S0002 = false
+    [V0003] = toggle // this is a switch (inferred by value)
+
+    V0001 = -1
+    V0001:V0002 %= Random(0, 512)
+    [V0003] /= [V0004]
 } else {
-    set V0001, 1
+    [V0005] *= V0006
 }
 
 # ignored
 ; comment
-set V0002, 1 // test
+V0001:V0002 = 2 // test
 // ignored2

@@ -2,8 +2,6 @@ WHITESPACE = _{ " " | "\t" }
 
 __used_externally = {
     commands
-  | instruction_set_destination
-  | instruction_set_variable_value
 }
 
 commands        = _{ SOI ~ expression* ~ expression_last? ~ EOI }
@@ -13,6 +11,7 @@ expression_last = _{ statement? ~ ignored? }
 statement = _{
     conditional
   | instruction
+  | assignment
   | comment
   | ignored
 }
@@ -33,16 +32,23 @@ operation   = @{ ASCII_ALPHA+ ~ &WHITESPACE }
 arguments   = _{ argument ~ ("," ~ argument)* }
 argument    =  { ASCII_ALPHANUMERIC+ }
 
-comment =  { ";" ~ (!NEWLINE ~ ANY)* }
+assignment              =  { assignment_switch | assignment_variable }
+assignment_switch       =  { (range | switch | pointer) ~ "=" ~ assignment_switch_rhs }
+assignment_switch_rhs   =  { ^"true" | ^"false" | ^"on" | ^"off" | ^"toggle" }
+assignment_variable     =  { (range | variable | pointer) ~ assignment_variable_op ~ assignment_variable_rhs }
+assignment_variable_op  =  { "=" | "+=" | "-=" | "*=" | "/=" | "%=" }
+assignment_variable_rhs = _{ (pointer | variable | number | random) ~ ignored? }
+
+comment =  { ";" ~ rest }
 ignored = _{ ("#" | "//") ~ (!NEWLINE ~ ANY)* }
 
 // terms
 switch   = @{ ^"S" ~ ASCII_DIGIT{4} }
 variable = @{ ^"V" ~ ASCII_DIGIT{4} }
+pointer  =  { "[" ~ variable ~ "]" }
+range    = ${ (switch ~ ":" ~ switch) | (variable ~ ":" ~ variable) }
 event    = @{ ^"E" ~ ^"V"? ~ ASCII_DIGIT{4} }
 number   = @{ ("-" | "+")? ~ ("0x" ~ ASCII_HEX_DIGIT+ | "0b" ~ ASCII_BIN_DIGIT+ | "0o" ~ ASCII_OCT_DIGIT+ | ASCII_DIGIT+) }
 bool     =  { ^"on" | ^"off" | ^"true" | ^"false" }
-
-// instruction arguments
-instruction_set_destination    = _{ SOI ~ (switch | variable) ~ EOI }
-instruction_set_variable_value = _{ SOI ~ number ~ EOI }
+rest     =  { (!NEWLINE ~ ANY)* }
+random   =  { "Random(" ~ number ~ "," ~ number ~ ")" }
