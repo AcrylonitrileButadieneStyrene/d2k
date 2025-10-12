@@ -1,1 +1,1 @@
-DSL for RPG Maker 2000 events
+Declarative RPG Maker 2000
