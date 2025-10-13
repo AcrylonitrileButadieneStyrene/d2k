@@ -36,7 +36,9 @@ pub fn convert_assignment_variable(
     };
 
     let rhs = match rhs.as_rule() {
-        grammar::Rule::number => Right::Constant(rhs.as_str().parse::<i32>().unwrap() as u32),
+        grammar::Rule::number => {
+            Right::Constant(rhs.as_str().parse::<i32>().unwrap().cast_unsigned())
+        }
         grammar::Rule::variable => Right::Variable(convert::term::variable(&rhs)),
         grammar::Rule::pointer => {
             Right::Pointer(convert::term::variable(&rhs.into_inner().next().unwrap()))
@@ -59,14 +61,10 @@ pub fn convert_assignment_variable(
                 Left::Pointer(_) => 2,
             },
             start: match lhs {
-                Left::Constant(x) => x,
-                Left::Range(x, _) => x,
-                Left::Pointer(x) => x,
+                Left::Constant(x) | Left::Range(x, _) | Left::Pointer(x) => x,
             },
             end: match lhs {
-                Left::Constant(x) => x,
-                Left::Range(_, x) => x,
-                Left::Pointer(x) => x,
+                Left::Constant(x) | Left::Range(_, x) | Left::Pointer(x) => x,
             },
             operation: match op.as_str() {
                 "=" => 0,
@@ -84,15 +82,13 @@ pub fn convert_assignment_variable(
                 Right::Random(_, _) => 3,
             },
             value1: match rhs {
-                Right::Constant(x) => x,
-                Right::Variable(x) => x,
-                Right::Pointer(x) => x,
-                Right::Random(x, _) => x,
+                Right::Constant(x)
+                | Right::Variable(x)
+                | Right::Pointer(x)
+                | Right::Random(x, _) => x,
             },
             value2: match rhs {
-                Right::Constant(_) => 0,
-                Right::Variable(_) => 0,
-                Right::Pointer(_) => 0,
+                Right::Constant(_) | Right::Variable(_) | Right::Pointer(_) => 0,
                 Right::Random(_, x) => x,
             },
         },

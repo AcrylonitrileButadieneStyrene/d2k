@@ -1,6 +1,3 @@
-#![warn(clippy::nursery)]
-#![warn(clippy::pedantic)]
-
 use lcf::raw::lmu::event::{command::Command, commands::Commands, instruction::Instruction};
 
 mod convert;
@@ -15,14 +12,16 @@ fn single<T>(item: T) -> Vec<T> {
 
 pub fn parse(input: &str, codepage: &'static encoding_rs::Encoding) -> Commands {
     let commands =
-        <grammar::Parser as pest::Parser<_>>::parse(grammar::Rule::commands, &input).unwrap();
+        <grammar::Parser as pest::Parser<_>>::parse(grammar::Rule::commands, input).unwrap();
 
     Commands(
         commands
             .flat_map(convert::expression)
             .scan(0, |indentation, (instruction, string)| {
                 let indent = *indentation;
-                *indentation = (*indentation as i32 + instruction.indentation_change()) as u32;
+                *indentation = ((*(indentation as &mut u32)).cast_signed()
+                    + instruction.indentation_change())
+                .cast_unsigned();
                 Some(Command {
                     indent,
                     instruction,

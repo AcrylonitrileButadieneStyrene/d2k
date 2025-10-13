@@ -1,4 +1,4 @@
-if V0001 == 1 {
+if V0002 == 3 {
     S0001 = true
     S0001:S0002 = false
     [V0003] = toggle // this is a switch (inferred by value)

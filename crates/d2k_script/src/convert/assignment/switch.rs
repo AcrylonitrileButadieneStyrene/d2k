@@ -35,14 +35,10 @@ pub fn convert_assignment_switch(
                 Left::Pointer(_) => 2,
             },
             start: match lhs {
-                Left::Constant(x) => x,
-                Left::Range(x, _) => x,
-                Left::Pointer(x) => x,
+                Left::Constant(x) | Left::Range(x, _) | Left::Pointer(x) => x,
             },
             end: match lhs {
-                Left::Constant(x) => x,
-                Left::Range(_, x) => x,
-                Left::Pointer(x) => x,
+                Left::Constant(x) | Left::Range(_, x) | Left::Pointer(x) => x,
             },
             operation: match rhs.as_str().to_lowercase().as_ref() {
                 "true" | "on" => 0,

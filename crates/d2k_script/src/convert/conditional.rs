@@ -38,7 +38,18 @@ pub fn r#if(r#if: Pair<'_, crate::grammar::Rule>, has_else: bool) -> Vec<crate::
             Instruction::ConditionalBranch {
                 mode: 1,
                 field1: variable_id,
-                field2: match comparison.as_str() {
+                field2: match value.as_rule() {
+                    grammar::Rule::number => 0,
+                    grammar::Rule::variable => 1,
+                    _ => unreachable!(),
+                },
+                field3: match value.as_rule() {
+                    grammar::Rule::variable => &value.as_str()[1..],
+                    _ => value.as_str(),
+                }
+                .parse()
+                .unwrap(),
+                field4: match comparison.as_str() {
                     "==" => 0,
                     ">=" => 1,
                     "<=" => 2,
@@ -47,17 +58,6 @@ pub fn r#if(r#if: Pair<'_, crate::grammar::Rule>, has_else: bool) -> Vec<crate::
                     "!=" => 5,
                     _ => unreachable!(),
                 },
-                field3: match value.as_rule() {
-                    grammar::Rule::number => 0,
-                    grammar::Rule::variable => 1,
-                    _ => unreachable!(),
-                },
-                field4: match value.as_rule() {
-                    grammar::Rule::variable => &value.as_str()[1..],
-                    _ => value.as_str(),
-                }
-                .parse()
-                .unwrap(),
                 has_else: u32::from(has_else),
             },
             None,

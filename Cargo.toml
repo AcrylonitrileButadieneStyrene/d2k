@@ -1,6 +1,16 @@
 [workspace]
-packages = ["crates/**"]
+members = ["crates/*"]
 resolver = "3"
+
+[workspace.dependencies]
+lcf = "0.6.2"
+encoding_rs = "0.8.35"
+serde = { version = "1.0.228", features = ["derive"] }
+
+[lints.clippy]
+nursery = "warn"
+pedantic = "warn"
+missing_panics_doc = "allow"
 
 [package]
 name = "d2k"
@@ -9,5 +19,9 @@ edition = "2024"
 
 [dependencies]
 d2k_script = { path = "crates/d2k_script" }
+d2k_events = { path = "crates/d2k_events" }
 clap = { version = "4.5.48", features = ["derive"] }
-encoding_rs = "0.8.35"
+encoding_rs = { workspace = true }
+lcf = { workspace = true }
+serde = { workspace = true }
+toml = "0.9.8"

@@ -5,7 +5,8 @@ pub fn convert_instruction(
 ) -> crate::Inst {
     let operation = instruction.next().unwrap();
 
+    #[allow(clippy::match_single_binding)]
     match operation.as_str().to_lowercase().as_str() {
-        x => panic!("unknown instruction {}", x),
+        x => panic!("unknown instruction {x}"),
     }
 }
