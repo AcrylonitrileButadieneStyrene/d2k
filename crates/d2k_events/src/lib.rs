@@ -13,8 +13,8 @@ pub fn build<S: std::hash::BuildHasher>(
     ron::from_str::<Vec<Event>>(src)
         .unwrap()
         .into_iter()
-        .scan(0, move |mut id, event| {
-            Some(convert(&mut id, codepage, commands, event))
+        .scan(0, move |id, event| {
+            Some(convert(id, codepage, commands, event))
         })
         .flatten()
 }
