@@ -10,6 +10,10 @@ fn single<T>(item: T) -> Vec<T> {
     vec![item]
 }
 
+fn next(pair: pest::iterators::Pair<grammar::Rule>) -> pest::iterators::Pair<grammar::Rule> {
+    pair.into_inner().next().unwrap()
+}
+
 pub fn parse(input: &str, codepage: &'static encoding_rs::Encoding) -> Commands {
     let commands =
         <grammar::Parser as pest::Parser<_>>::parse(grammar::Rule::commands, input).unwrap();

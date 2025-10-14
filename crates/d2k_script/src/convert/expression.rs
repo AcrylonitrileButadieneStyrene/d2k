@@ -27,6 +27,21 @@ pub fn convert_expression(expression: Pair<'_, grammar::Rule>) -> Vec<crate::Ins
                 _ => unreachable!(),
             }
         }
+        grammar::Rule::r#loop => {
+            let mut inner = expression
+                .into_inner()
+                .next()
+                .unwrap()
+                .into_inner()
+                .flat_map(convert::expression)
+                .collect::<Vec<_>>();
+            let mut vec = Vec::with_capacity(inner.len() + 3);
+            vec.push((Instruction::Loop, None));
+            vec.append(&mut inner);
+            vec.push((Instruction::End, None));
+            vec.push((Instruction::EndLoop, None));
+            vec
+        }
         grammar::Rule::instruction => crate::single(convert::instruction(expression.into_inner())),
         grammar::Rule::assignment => convert::assigment(expression.into_inner().next().unwrap()),
         grammar::Rule::comment => crate::single((

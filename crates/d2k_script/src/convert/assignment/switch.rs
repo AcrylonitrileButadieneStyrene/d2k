@@ -13,17 +13,19 @@ pub fn convert_assignment_switch(
     let rhs = assignment.next().unwrap();
 
     let lhs = match lhs.as_rule() {
-        grammar::Rule::switch => Left::Constant(convert::term::switch(&lhs)),
+        grammar::Rule::switch => Left::Constant(convert::term(lhs).switch().unwrap()),
         grammar::Rule::range => {
             let mut iter = lhs.into_inner();
             Left::Range(
-                convert::term::switch(&iter.next().unwrap()),
-                convert::term::switch(&iter.next().unwrap()),
+                convert::term(iter.next().unwrap()).switch().unwrap(),
+                convert::term(iter.next().unwrap()).switch().unwrap(),
             )
         }
-        grammar::Rule::pointer => {
-            Left::Pointer(convert::term::variable(&lhs.into_inner().next().unwrap()))
-        }
+        grammar::Rule::pointer => Left::Pointer(
+            convert::term(lhs.into_inner().next().unwrap())
+                .variable()
+                .unwrap(),
+        ),
         _ => unreachable!(),
     };
 

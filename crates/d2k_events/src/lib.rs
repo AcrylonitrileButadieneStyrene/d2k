@@ -36,7 +36,7 @@ fn convert<S: std::hash::BuildHasher>(
                 id: *id as u32,
                 name: name
                     .clone()
-                    .unwrap_or_else(|| codepage.encode(&format!("E{id:04}")).0.to_vec()),
+                    .unwrap_or_else(|| codepage.encode(&format!("EV{id:04}")).0.to_vec()),
                 x,
                 y,
                 pages: event

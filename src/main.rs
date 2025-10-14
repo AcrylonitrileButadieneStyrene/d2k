@@ -1,3 +1,5 @@
+#![feature(result_option_map_or_default)]
+
 use lcf::raw::lmu::event::commands::Commands;
 
 mod codepage;
@@ -8,7 +10,7 @@ struct Args {
     input: std::path::PathBuf,
     #[arg(short, long, value_enum, default_value = "shift-jis")]
     codepage: codepage::CodePage,
-    #[arg(short, long)]
+    #[arg(short, long, default_value = "-")]
     out: std::path::PathBuf,
 }
 
@@ -41,9 +43,13 @@ fn main() {
         ..Default::default()
     };
 
-    let mut buf = std::io::Cursor::new(Vec::new());
-    map.write(&mut buf).unwrap();
-    std::fs::write(args.out, buf.into_inner()).unwrap();
+    if args.out.to_str().map_or_default(|str| str == "-") {
+        println!("{map:?}");
+    } else {
+        let mut buf = std::io::Cursor::new(Vec::new());
+        map.write(&mut buf).unwrap();
+        std::fs::write(args.out, buf.into_inner()).unwrap();
+    }
 }
 
 fn gather_commands(

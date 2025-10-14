@@ -7,6 +7,10 @@ if V0002 == 3 {
     V0001:V0002 %= Random(0, 512)
     [V0003] /= [V0004]
 } else {
+    loop {
+        break
+    }
+
     [V0005] *= V0006
 }
 
@@ -14,3 +18,11 @@ if V0002 == 3 {
 ; comment
 V0001:V0002 = 2 // test
 // ignored2
+
+loop {
+    erase
+    return
+    call CE0001
+    call E0002, 10
+    call [V0003], [V0004]
+}

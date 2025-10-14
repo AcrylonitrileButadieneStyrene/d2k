@@ -21,17 +21,19 @@ pub fn convert_assignment_variable(
     let rhs = assignment.next().unwrap();
 
     let lhs = match lhs.as_rule() {
-        grammar::Rule::variable => Left::Constant(convert::term::variable(&lhs)),
+        grammar::Rule::variable => Left::Constant(convert::term(lhs).variable().unwrap()),
         grammar::Rule::range => {
             let mut iter = lhs.into_inner();
             Left::Range(
-                convert::term::variable(&iter.next().unwrap()),
-                convert::term::variable(&iter.next().unwrap()),
+                convert::term(iter.next().unwrap()).variable().unwrap(),
+                convert::term(iter.next().unwrap()).variable().unwrap(),
             )
         }
-        grammar::Rule::pointer => {
-            Left::Pointer(convert::term::variable(&lhs.into_inner().next().unwrap()))
-        }
+        grammar::Rule::pointer => Left::Pointer(
+            convert::term(lhs.into_inner().next().unwrap())
+                .variable()
+                .unwrap(),
+        ),
         _ => unreachable!(),
     };
 
@@ -39,10 +41,12 @@ pub fn convert_assignment_variable(
         grammar::Rule::number => {
             Right::Constant(rhs.as_str().parse::<i32>().unwrap().cast_unsigned())
         }
-        grammar::Rule::variable => Right::Variable(convert::term::variable(&rhs)),
-        grammar::Rule::pointer => {
-            Right::Pointer(convert::term::variable(&rhs.into_inner().next().unwrap()))
-        }
+        grammar::Rule::variable => Right::Variable(convert::term(rhs).variable().unwrap()),
+        grammar::Rule::pointer => Right::Pointer(
+            convert::term(rhs.into_inner().next().unwrap())
+                .variable()
+                .unwrap(),
+        ),
         grammar::Rule::random => {
             let mut iter = rhs.into_inner();
             Right::Random(
