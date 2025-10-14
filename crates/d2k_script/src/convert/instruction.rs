@@ -3,6 +3,7 @@ use lcf::raw::lmu::event::instruction::Instruction;
 use crate::{convert, grammar};
 
 pub fn convert_instruction(
+    ctx: &crate::Context,
     mut instruction: pest::iterators::Pairs<'_, grammar::Rule>,
 ) -> crate::Inst {
     let operation = instruction.next().unwrap();
@@ -15,10 +16,7 @@ pub fn convert_instruction(
         "erase" => (Instruction::EraseEvent, None),
         "wait" => (
             Instruction::Wait {
-                deciseconds: (operation
-                    .into_inner()
-                    .next()
-                    .unwrap()
+                deciseconds: (crate::next(arguments.unwrap())
                     .as_str()
                     .parse::<f32>()
                     .unwrap()
@@ -57,6 +55,15 @@ pub fn convert_instruction(
                             .unwrap(),
                     },
                     _ => unreachable!(),
+                },
+                None,
+            )
+        }
+        "goto" => {
+            let str = crate::next(arguments.clone().unwrap()).as_str();
+            (
+                Instruction::JumpToLabel {
+                    value: ctx.labels.iter().position(|label| &**label == str).unwrap() as u32,
                 },
                 None,
             )

@@ -1,9 +1,8 @@
 use lcf::raw::lmu::event::instruction::Instruction;
-use pest::iterators::Pair;
 
-use crate::grammar;
+use crate::{convert, grammar};
 
-pub fn r#if(r#if: Pair<'_, crate::grammar::Rule>, has_else: bool) -> Vec<crate::Inst> {
+pub fn r#if(ctx: &crate::Context, r#if: crate::Pair, has_else: bool) -> Vec<crate::Inst> {
     let mut pairs = r#if.into_inner();
     let mut condition = pairs.next().unwrap().into_inner();
     let block = pairs.next().unwrap().into_inner();
@@ -66,7 +65,7 @@ pub fn r#if(r#if: Pair<'_, crate::grammar::Rule>, has_else: bool) -> Vec<crate::
     };
 
     let mut commands = block
-        .flat_map(super::expression::convert_expression)
+        .flat_map(|expression| convert::expression(ctx, expression))
         .collect::<Vec<_>>();
 
     let mut out = Vec::with_capacity(commands.len() + 3);

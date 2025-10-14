@@ -8,7 +8,15 @@ if V0002 == 3 {
     [V0003] /= [V0004]
 } else {
     loop {
-        break
+        wait 1
+one: # comment
+        goto three
+two:
+        goto four
+three:
+        goto two
+four:
+        wait 0.5
     }
 
     [V0005] *= V0006

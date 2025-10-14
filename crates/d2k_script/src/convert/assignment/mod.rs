@@ -3,9 +3,7 @@ mod variable;
 
 use crate::grammar;
 
-pub fn convert_assignment(
-    assignment: pest::iterators::Pair<'_, grammar::Rule>,
-) -> Vec<crate::Inst> {
+pub fn convert_assignment(assignment: crate::Pair) -> Vec<crate::Inst> {
     let rule = assignment.as_rule();
     let inner = assignment.into_inner();
     match rule {

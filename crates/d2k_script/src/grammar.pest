@@ -1,5 +1,7 @@
 WHITESPACE = _{ " " | "\t" }
 
+__ = { commands | instruction_call }
+
 commands        = _{ SOI ~ expression* ~ expression_last? ~ EOI }
 expression      = _{ statement? ~ ignored? ~ NEWLINE }
 expression_last = _{ statement? ~ ignored? }
@@ -8,6 +10,7 @@ statement = _{
     conditional
   | loop
   | assignment
+  | label
   | comment
   | ignored
   | instruction
@@ -29,7 +32,7 @@ loop = { "loop" ~ block }
 instruction =  { operation ~ arguments? }
 operation   = @{ ASCII_ALPHA+ }
 arguments   =  { argument ~ ("," ~ argument)* }
-argument    =  { (!WHITESPACE ~ !NEWLINE ~ !"," ~ ANY)+ }
+argument    =  { (ASCII_ALPHANUMERIC | "[" | "]" | ".")+ }
 
 instruction_call = _{ common_event | (event ~ "," ~ number) | (pointer ~ "," ~ pointer) }
 
@@ -40,7 +43,11 @@ assignment_variable     =  { (range | variable | pointer) ~ assignment_variable_
 assignment_variable_op  =  { "=" | "+=" | "-=" | "*=" | "/=" | "%=" }
 assignment_variable_rhs = _{ (pointer | variable | number | random) ~ ignored? }
 
+label      = { label_word ~ !&WHITESPACE ~ ":" ~ ignored? }
+label_word = { ASCII_ALPHA+ }
+
 comment =  { ";" ~ rest }
+rest    =  { (!NEWLINE ~ ANY)* }
 ignored = _{ ("#" | "//") ~ (!NEWLINE ~ ANY)* }
 
 // terms
@@ -53,5 +60,4 @@ common_event = ${ ^"CE" ~ ^"V"? ~ four_digits }
 event        = ${ ^"E" ~ ^"V"? ~ four_digits }
 number       = @{ ("-" | "+")? ~ ("0x" ~ ASCII_HEX_DIGIT+ | "0b" ~ ASCII_BIN_DIGIT+ | "0o" ~ ASCII_OCT_DIGIT+ | ASCII_DIGIT+) }
 bool         =  { ^"on" | ^"off" | ^"true" | ^"false" }
-rest         =  { (!NEWLINE ~ ANY)* }
 random       =  { "Random(" ~ number ~ "," ~ number ~ ")" }
