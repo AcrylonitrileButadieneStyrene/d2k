@@ -1,0 +1,16 @@
+[package]
+name = "d2k_mapgen"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+d2k_codegen = { path = "../d2k_codegen" }
+d2k_lexer = { path = "../d2k_lexer" }
+d2k_parser = { path = "../d2k_parser" }
+codespan-reporting = { workspace = true }
+encoding_rs = { workspace = true }
+itertools = { workspace = true }
+lcf = { workspace = true }
+ron = "0.11.0"
+serde = { workspace = true }
+toml = "0.9.8"

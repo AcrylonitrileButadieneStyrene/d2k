@@ -8,7 +8,7 @@ if V0002 == 3 {
     [V0003] /= [V0004]
 } else {
     loop {
-        wait 1
+        wait(1.0)
 one: # comment
         goto three
 two:
@@ -16,7 +16,7 @@ two:
 three:
         goto two
 four:
-        wait 0.5
+        wait(0.5)
     }
 
     [V0005] *= V0006
@@ -30,7 +30,7 @@ V0001:V0002 = 2 // test
 loop {
     erase
     return
-    call CE0001
-    call E0002, 10
-    call [V0003], [V0004]
+    CE0001()
+    E0002[10]()
+    [V0003][V0004]()
 }

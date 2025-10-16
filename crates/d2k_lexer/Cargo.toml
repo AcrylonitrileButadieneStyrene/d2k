@@ -1,0 +1,10 @@
+[package]
+name = "d2k_lexer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+d2k_errors = { path = "../d2k_errors" }
+codespan-reporting = { workspace = true }
+itertools = { workspace = true }
+logos = "0.15.1"

@@ -2,70 +2,101 @@
 
 use lcf::raw::lmu::event::commands::Commands;
 
+mod args;
 mod codepage;
 
-#[derive(clap::Parser)]
-struct Args {
-    #[arg(short, default_value = ".")]
-    input: std::path::PathBuf,
-    #[arg(short, long, value_enum, default_value = "shift-jis")]
-    codepage: codepage::CodePage,
-    #[arg(short, long, default_value = "-")]
-    out: std::path::PathBuf,
-}
-
-#[derive(serde::Deserialize)]
-struct Manifest {
-    width: Option<u32>,
-    height: Option<u32>,
-    chipset: Option<u32>,
-}
+pub(crate) use codepage::CodePage;
 
 fn main() {
-    let mut args = <Args as clap::Parser>::parse();
-    if args.input.ends_with("D2K.toml") {
-        args.input.pop();
-    }
-    let encoding = args.codepage.to_encoding();
+    let args = <args::Args as clap::Parser>::parse();
+    match args.command {
+        args::Command::Lex { input } => {
+            let src = std::fs::read_to_string(&input).unwrap();
+            for (token, span) in &d2k_lexer::lex(input.to_str().unwrap(), &src) {
+                println!("{span:?}: {token:?} ({})", &src[span.clone()]);
+            }
+        }
+        args::Command::Parse { input } => {
+            let src = std::fs::read_to_string(&input).unwrap();
+            let name = input.to_str().unwrap();
+            let file = codespan_reporting::files::SimpleFile::new(&name, &src);
 
-    let commands = gather_commands(&args.input, encoding);
-    let src = std::fs::read_to_string(args.input.join("Events.ron")).unwrap();
-    let events = d2k_events::build(&src, encoding, &commands).collect::<Vec<_>>();
+            let tokens = d2k_lexer::lex(name, &src);
+            match d2k_parser::parse(tokens) {
+                Ok(ast) => println!("{ast:#?}"),
+                Err(diagnostic) => d2k_errors::emit(&file, &diagnostic).unwrap(),
+            }
+        }
+        args::Command::Build {
+            input,
+            out,
+            codepage,
+        } => {
+            let encoding = codepage.to_encoding();
 
-    let manifest =
-        toml::from_str::<Manifest>(&std::fs::read_to_string(args.input.join("D2K.toml")).unwrap())
-            .unwrap();
-    let map = lcf::lmu::LcfMapUnit {
-        width: manifest.width.unwrap_or(20),
-        height: manifest.height.unwrap_or(15),
-        chipset: manifest.chipset,
-        events,
-        ..Default::default()
-    };
+            let manifest = d2k_mapgen::Manifest::parse(
+                &std::fs::read_to_string(input.join("D2K.toml")).unwrap(),
+            );
 
-    if args.out.to_str().map_or_default(|str| str == "-") {
-        println!("{map:?}");
-    } else {
-        let mut buf = std::io::Cursor::new(Vec::new());
-        map.write(&mut buf).unwrap();
-        std::fs::write(args.out, buf.into_inner()).unwrap();
+            let src = std::fs::read_to_string(input.join("Events.ron")).unwrap();
+            let commands = gather_commands(&input, encoding);
+
+            let events = d2k_mapgen::build(&src, encoding, &commands).collect::<Vec<_>>();
+            let map = lcf::lmu::LcfMapUnit {
+                width: manifest.width.unwrap_or(20),
+                height: manifest.height.unwrap_or(15),
+                chipset: manifest.chipset,
+                events,
+                ..Default::default()
+            };
+
+            if out.to_str().map_or_default(|str| str == "-") {
+                println!("{map:?}");
+            } else {
+                let mut buf = std::io::Cursor::new(Vec::new());
+                map.write(&mut buf).unwrap();
+                std::fs::write(out, buf.into_inner()).unwrap();
+            }
+        }
     }
 }
 
 fn gather_commands(
     base: &std::path::Path,
     codepage: &'static encoding_rs::Encoding,
-) -> std::collections::HashMap<std::sync::Arc<str>, Commands> {
+) -> std::collections::HashMap<std::sync::Arc<str>, std::sync::Arc<Commands>> {
+    let mut will_terminate = false;
+
     let mut commands = std::collections::HashMap::new();
     for entry in std::fs::read_dir(base.join("Commands"))
         .unwrap()
         .filter_map(Result::ok)
     {
+        let name = entry.file_name().to_str().unwrap().to_owned();
         let src = std::fs::read_to_string(entry.path()).unwrap();
+        let tokens = d2k_lexer::lex(&name, &src);
+        let ast = match d2k_parser::parse(tokens) {
+            Ok(ast) => ast,
+            Err(diagnostic) => {
+                d2k_errors::emit(
+                    &codespan_reporting::files::SimpleFile::new(&name, &src),
+                    &diagnostic,
+                )
+                .unwrap();
+                will_terminate = true;
+                continue;
+            }
+        };
+
         commands.insert(
-            std::sync::Arc::<str>::from(entry.path().file_prefix().unwrap().to_str().unwrap()),
-            d2k_script::parse(&src, codepage),
+            entry.path().file_prefix().unwrap().to_str().unwrap().into(),
+            std::sync::Arc::new(d2k_codegen::build(ast, codepage)),
         );
     }
+
+    if will_terminate {
+        std::process::exit(1);
+    }
+
     commands
 }
