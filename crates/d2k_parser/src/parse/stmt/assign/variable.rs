@@ -2,10 +2,15 @@ use crate::{parse, read, types};
 
 pub fn variable(
     parser: &mut parse::Parser,
-    variable: u32,
+    start: u32,
+    end: u32,
 ) -> Result<types::Statement, crate::ParseError> {
     Ok(types::Statement::Assign(types::Assignment::Variable(
-        read::assign_destination(parser, variable, true)?,
+        if start == end {
+            types::AssignmentDestination::Single(start)
+        } else {
+            types::AssignmentDestination::Range(start, end)
+        },
         read::assign_op(parser.next())?,
         {
             let token = parser.next();

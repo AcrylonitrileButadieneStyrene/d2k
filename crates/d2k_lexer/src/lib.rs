@@ -27,6 +27,7 @@ pub enum Token {
     #[regex("[rR]and(om)?")]
     Random,
     #[token("goto")]
+    #[token("jump")]
     GoTo,
 
     #[token("=")]
@@ -66,8 +67,9 @@ pub enum Token {
     ParenClose,
     #[token(",")]
     Comma,
-    #[token(":")]
-    Colon,
+
+    #[regex(r"@[a-zA-Z_][a-zA-Z0-9_]*:", |lex| let str = lex.slice(); str[1..str.len() - 1].to_string())]
+    Label(String),
 
     // values
     #[token("true")]
@@ -80,6 +82,10 @@ pub enum Token {
     Toggle,
     #[regex(r"[-+]?[0-9]+([\.,_][0-9]+)*", |lex| lex.slice().chars().filter(|char| *char != ',' && *char != '_'&& *char != '.').collect::<String>().parse().ok())]
     Number(i32),
+    #[regex(r"[vV][0-9]{4}~[vV][0-9]{4}", |lex| let str = lex.slice(); str[1..5].parse().ok().zip(str[7..].parse().ok()))]
+    VariableRange((u32, u32)),
+    #[regex(r"[sS][0-9]{4}~[sS][0-9]{4}", |lex| let str = lex.slice(); str[1..5].parse().ok().zip(str[7..].parse().ok()))]
+    SwitchRange((u32, u32)),
     #[regex(r"[vV][0-9]{4}", |lex| lex.slice()[1..].parse().ok())]
     Variable(u32),
     #[regex(r"[sS][0-9]{4}", |lex| lex.slice()[1..].parse().ok())]

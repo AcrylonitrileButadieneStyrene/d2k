@@ -1,7 +1,7 @@
 #![feature(result_option_map_or_default)]
 
 mod manifest;
-pub use manifest::Manifest;
+pub use manifest::{Manifest, ManifestMap};
 
 use lcf::{
     lmu::event::{Event as LcfEvent, page::EventPage},

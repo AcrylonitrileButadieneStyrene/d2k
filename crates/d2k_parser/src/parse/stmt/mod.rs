@@ -9,10 +9,18 @@ pub fn stmt(parser: &mut parse::Parser) -> Result<types::Statement, crate::Parse
     match parser.next() {
         d2k_lexer::Token::If => parse::stmt::r#if(parser),
         d2k_lexer::Token::Loop => parser.parse_block().map(types::Statement::Loop),
-        d2k_lexer::Token::Switch(switch) => parse::stmt::assign::switch(parser, switch),
-        d2k_lexer::Token::Variable(variable) => parse::stmt::assign::variable(parser, variable),
+        d2k_lexer::Token::Switch(start @ end) | d2k_lexer::Token::SwitchRange((start, end)) => {
+            parse::stmt::assign::switch(parser, start, end)
+        }
+        d2k_lexer::Token::Variable(start @ end) | d2k_lexer::Token::VariableRange((start, end)) => {
+            parse::stmt::assign::variable(parser, start, end)
+        }
         d2k_lexer::Token::Pointer(val) => parse::stmt::pointer(parser, val),
         d2k_lexer::Token::Identifier(ident) => parse::ident(parser, ident),
+        d2k_lexer::Token::Label(label) => {
+            parser.ast.labels.push(label.clone());
+            Ok(types::Statement::Label(label))
+        }
         d2k_lexer::Token::GoTo => match parser.next() {
             d2k_lexer::Token::Identifier(ident) => Ok(types::Statement::GoTo(ident)),
             _ => Err(crate::Expected::single("Identifier").into()),
@@ -34,8 +42,6 @@ pub fn stmt(parser: &mut parse::Parser) -> Result<types::Statement, crate::Parse
 
             Ok(types::Statement::CallMapEventConstant(event, index))
         }
-        _ => Err(
-            crate::Expected::multiple(vec!["If", "Switch", "Variable", "Pointer", "Loop"]).into(),
-        ),
+        _ => Err(crate::Expected::single("statement").into()),
     }
 }

@@ -1,21 +1,21 @@
 if V0002 == 3 {
     S0001 = true
-    S0001:S0002 = false
+    S0001~S0002 = false
     [V0003] = toggle // this is a switch (inferred by value)
 
     V0001 = -1
-    V0001:V0002 %= Random(0, 512)
+    V0001~V0002 %= Random(0, 512)
     [V0003] /= [V0004]
 } else {
     loop {
         wait(1.0)
-one: # comment
+@one: # comment
         goto three
-two:
+@two:
         goto four
-three:
+@three:
         goto two
-four:
+@four:
         wait(0.5)
     }
 
@@ -24,7 +24,7 @@ four:
 
 # ignored
 ; comment
-V0001:V0002 = 2 // test
+V0001~V0002 = 2 // test
 // ignored2
 
 loop {

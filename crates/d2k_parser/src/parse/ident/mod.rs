@@ -5,10 +5,6 @@ pub fn ident(
     ident: String,
 ) -> Result<types::Statement, crate::ParseError> {
     match parser.next() {
-        d2k_lexer::Token::Colon => {
-            parser.ast.labels.push(ident.clone());
-            Ok(types::Statement::Label(ident))
-        }
         d2k_lexer::Token::ParenOpen => {
             let mut args = Vec::new();
             loop {

@@ -1,6 +1,7 @@
 #![feature(result_option_map_or_default)]
 
-use lcf::raw::lmu::event::commands::Commands;
+use d2k_mapgen::ManifestMap;
+use lcf::{ConvertExt as _, raw::lmu::event::commands::Commands};
 
 mod args;
 mod codepage;
@@ -33,22 +34,35 @@ fn main() {
             codepage,
         } => {
             let encoding = codepage.to_encoding();
-
             let manifest = d2k_mapgen::Manifest::parse(
                 &std::fs::read_to_string(input.join("D2K.toml")).unwrap(),
             );
-
             let src = std::fs::read_to_string(input.join("Events.ron")).unwrap();
             let commands = gather_commands(&input, encoding);
 
-            let events = d2k_mapgen::build(&src, encoding, &commands).collect::<Vec<_>>();
-            let map = lcf::lmu::LcfMapUnit {
-                width: manifest.width.unwrap_or(20),
-                height: manifest.height.unwrap_or(15),
-                chipset: manifest.chipset,
-                events,
-                ..Default::default()
+            let mut events = d2k_mapgen::build(&src, encoding, &commands).collect::<Vec<_>>();
+            let mut map = match manifest.map {
+                Some(ManifestMap {
+                    extends: Some(extends),
+                    ..
+                }) if std::fs::exists(&extends).unwrap_or_default() => {
+                    let buf = std::fs::read(&extends).unwrap();
+                    lcf::lmu::LcfMapUnit::read(&mut std::io::Cursor::new(buf)).unwrap()
+                }
+                Some(ManifestMap {
+                    width,
+                    height,
+                    chipset,
+                    ..
+                }) => lcf::lmu::LcfMapUnit {
+                    width: width.unwrap_or(20),
+                    height: height.unwrap_or(15),
+                    chipset: chipset.unwrap_or(1),
+                    ..Default::default()
+                },
+                None => lcf::lmu::LcfMapUnit::default(),
             };
+            map.events.append(&mut events);
 
             if out.to_str().map_or_default(|str| str == "-") {
                 println!("{map:?}");
@@ -89,7 +103,7 @@ fn gather_commands(
         };
 
         commands.insert(
-            entry.path().file_prefix().unwrap().to_str().unwrap().into(),
+            entry.path().file_stem().unwrap().to_str().unwrap().into(),
             std::sync::Arc::new(d2k_codegen::build(ast, codepage)),
         );
     }
