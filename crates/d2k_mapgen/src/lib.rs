@@ -1,5 +1,6 @@
 #![feature(result_option_map_or_default)]
 
+mod events;
 mod manifest;
 pub use manifest::{Manifest, ManifestMap};
 
@@ -13,7 +14,7 @@ pub fn build<S: std::hash::BuildHasher>(
     codepage: &'static encoding_rs::Encoding,
     commands: &std::collections::HashMap<std::sync::Arc<str>, std::sync::Arc<Commands>, S>,
 ) -> impl Iterator<Item = LcfEvent> {
-    ron::from_str::<Vec<Event>>(src)
+    ron::from_str::<Vec<events::Event>>(src)
         .unwrap()
         .into_iter()
         .scan(0, move |id, event| {
@@ -26,7 +27,7 @@ fn convert<S: std::hash::BuildHasher>(
     id: &mut usize,
     codepage: &'static encoding_rs::Encoding,
     commands: &std::collections::HashMap<std::sync::Arc<str>, std::sync::Arc<Commands>, S>,
-    event: Event,
+    event: events::Event,
 ) -> Vec<LcfEvent> {
     let x = position_to_range(&event.x);
     let y = position_to_range(&event.y);
@@ -49,6 +50,7 @@ fn convert<S: std::hash::BuildHasher>(
                         commands: commands
                             .get(page.file.as_str())
                             .map_or_default(|x| x.0.clone()),
+                        graphic: (&page.graphic).into(),
                         ..Default::default()
                     })
                     .collect(),
@@ -57,30 +59,10 @@ fn convert<S: std::hash::BuildHasher>(
         .collect()
 }
 
-fn position_to_range(pos: &Position) -> std::ops::RangeInclusive<u32> {
+fn position_to_range(pos: &events::Position) -> std::ops::RangeInclusive<u32> {
     match pos {
-        Position::Constant(a) => *a..=*a,
-        Position::Range(a, b) if a <= b => *a..=*b,
-        Position::Range(a, b) => *b..=*a,
+        events::Position::Constant(a) => *a..=*a,
+        events::Position::Range(a, b) if a <= b => *a..=*b,
+        events::Position::Range(a, b) => *b..=*a,
     }
-}
-
-#[derive(Debug, serde::Deserialize)]
-struct Event {
-    name: Option<String>,
-    x: Position,
-    y: Position,
-    pages: Vec<Page>,
-}
-
-#[derive(Debug, serde::Deserialize)]
-#[serde(untagged)]
-enum Position {
-    Constant(u32),
-    Range(u32, u32),
-}
-
-#[derive(Debug, serde::Deserialize)]
-struct Page {
-    file: String,
 }

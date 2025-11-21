@@ -37,9 +37,9 @@ fn main() {
             let manifest = d2k_mapgen::Manifest::parse(
                 &std::fs::read_to_string(input.join("D2K.toml")).unwrap(),
             );
-            let src = std::fs::read_to_string(input.join("Events.ron")).unwrap();
             let commands = gather_commands(&input, encoding);
-
+            
+            let src = std::fs::read_to_string(input.join("Events.ron")).unwrap();
             let mut events = d2k_mapgen::build(&src, encoding, &commands).collect::<Vec<_>>();
             let mut map = match manifest.map {
                 Some(ManifestMap {
