@@ -23,8 +23,8 @@ impl Parser {
         self.position += 1;
     }
 
-    pub fn peek(&mut self) -> d2k_lexer::Token {
-        self.tokens[self.position].clone()
+    pub fn peek(&mut self) -> Option<d2k_lexer::Token> {
+        self.tokens.get(self.position).cloned()
     }
 
     pub fn peek_back(&mut self) -> d2k_lexer::Token {
@@ -64,7 +64,7 @@ impl Parser {
         self.expect(d2k_lexer::Token::BraceOpen)?;
 
         let mut buf = Vec::new();
-        while !matches!(self.peek(), d2k_lexer::Token::BraceClose) {
+        while !matches!(self.peek(), Some(d2k_lexer::Token::BraceClose)) {
             buf.push(parse::stmt(self)?);
         }
 

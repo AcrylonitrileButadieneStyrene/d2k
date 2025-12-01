@@ -5,7 +5,7 @@ pub fn pointer(
     target: u32,
 ) -> Result<types::Statement, crate::ParseError> {
     match parser.peek() {
-        d2k_lexer::Token::Pointer(page) => {
+        Some(d2k_lexer::Token::Pointer(page)) => {
             parser.forward();
             parser.expect(d2k_lexer::Token::ParenOpen)?;
             parser.expect(d2k_lexer::Token::ParenClose)?;

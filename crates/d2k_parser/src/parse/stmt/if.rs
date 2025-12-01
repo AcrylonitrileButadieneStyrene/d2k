@@ -28,7 +28,7 @@ pub fn r#if(parser: &mut parse::Parser) -> Result<types::Statement, crate::Parse
         ),
         block: parser.parse_block()?,
         r#else: {
-            if matches!(parser.peek(), d2k_lexer::Token::Else) {
+            if matches!(parser.peek(), Some(d2k_lexer::Token::Else)) {
                 parser.forward();
                 Some(parser.parse_block()?)
             } else {
