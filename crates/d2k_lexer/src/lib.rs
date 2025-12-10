@@ -119,7 +119,7 @@ pub fn lex(file_name: &str, source: &str) -> Vec<(Token, Range)> {
         });
 
     if !errors.is_empty() {
-        d2k_errors::emit(
+        d2k_common::emit(
             &codespan_reporting::files::SimpleFile::new(file_name, source),
             &codespan_reporting::diagnostic::Diagnostic::error()
                 .with_message("Unrecognized token")

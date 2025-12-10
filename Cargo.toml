@@ -8,6 +8,7 @@ encoding_rs = "0.8.35"
 serde = { version = "1.0.228", features = ["derive"] }
 codespan-reporting = "0.12.0"
 itertools = "0.14.0"
+log = "0.4.29"
 
 [lints.clippy]
 nursery = { level = "warn", priority = -1 }
@@ -22,12 +23,14 @@ publish = false
 
 [dependencies]
 d2k_codegen = { path = "crates/d2k_codegen" }
-d2k_errors = { path = "crates/d2k_errors" }
+d2k_common = { path = "crates/d2k_common" }
 d2k_lexer = { path = "crates/d2k_lexer" }
-d2k_mapgen = { path = "crates/d2k_mapgen" }
+d2k_format = { path = "crates/d2k_format" }
 d2k_parser = { path = "crates/d2k_parser" }
 clap = { version = "4.5.48", features = ["derive"] }
 codespan-reporting = { workspace = true }
 encoding_rs = { workspace = true }
 lcf = { workspace = true }
+log = { workspace = true }
 serde = { workspace = true }
+tracing-subscriber = "0.3.22"

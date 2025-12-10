@@ -27,8 +27,9 @@ pub struct Graphic {
 
 impl From<&Graphic> for lcf::lmu::event::page::Graphic {
     fn from(value: &Graphic) -> Self {
-        let mut graphic = Self::default();
-        graphic.direction = value.direction;
-        graphic
+        Self {
+            direction: value.direction,
+            ..Default::default()
+        }
     }
 }
