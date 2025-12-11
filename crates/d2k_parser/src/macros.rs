@@ -16,7 +16,7 @@ macro_rules! switch {
         match $token {
             $( $pat => $result, )+
             _ => {
-                return Err($crate::Expected::Multiple(
+                return Err($crate::r2ks::Expected::Multiple(
                     vec![$(
                         (stringify!($pat)
                             .rsplit("::").next().unwrap()

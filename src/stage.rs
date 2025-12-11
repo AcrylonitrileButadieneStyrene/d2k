@@ -4,6 +4,7 @@ use std::path::PathBuf;
 pub enum Stage {
     Lex,
     Parse,
+    Reduce,
     Compile,
     Serialize,
 }
@@ -12,6 +13,7 @@ pub enum Stage {
 pub struct Stages {
     pub lex: Option<PathBuf>,
     pub parse: Option<PathBuf>,
+    pub reduce: Option<PathBuf>,
     pub compile: Option<PathBuf>,
     pub serialize: Option<PathBuf>,
 }
@@ -23,6 +25,7 @@ impl From<Vec<(Stage, PathBuf)>> for Stages {
             if let Some(duplicate) = match stage {
                 Stage::Lex => &mut this.lex,
                 Stage::Parse => &mut this.parse,
+                Stage::Reduce => &mut this.reduce,
                 Stage::Compile => &mut this.compile,
                 Stage::Serialize => &mut this.serialize,
             }

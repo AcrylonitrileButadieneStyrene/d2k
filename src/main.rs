@@ -38,7 +38,7 @@ fn main() {
                         });
 
                         let src = std::fs::read_to_string(&input).unwrap();
-                        let tokens = d2k_lexer::lex(input.to_str().unwrap(), &src);
+                        let tokens = d2k_lexer::R2KSToken::from_file(input.to_str().unwrap(), &src);
 
                         if let Some(path) = stages.lex() {
                             let tokens = tokens.iter().map(|(token, span)| {
@@ -54,7 +54,7 @@ fn main() {
                         }
 
                         if let Some(path) = stages.parse {
-                            let ast = match d2k_parser::parse(tokens) {
+                            let ast = match d2k_parser::r2ks::parse(tokens) {
                                 Ok(ast) => ast,
                                 Err(diagnostic) => {
                                     let name = input.to_str().unwrap();
@@ -71,6 +71,9 @@ fn main() {
                                 std::fs::write(path, format!("{ast:#?}")).unwrap();
                             }
                         }
+                    }
+                    Some("il2k") => {
+                        todo!();
                     }
                     x => {
                         log::error!(
@@ -157,9 +160,9 @@ fn gather_commands(
     {
         let name = entry.file_name().to_str().unwrap().to_owned();
         let src = std::fs::read_to_string(entry.path()).unwrap();
-        let tokens = d2k_lexer::lex(&name, &src);
-        let ast = match d2k_parser::parse(tokens) {
-            Ok(ast) => ast,
+        let tokens = d2k_lexer::R2KSToken::from_file(&name, &src);
+        let il = match d2k_parser::r2ks::parse(tokens) {
+            Ok(il) => il,
             Err(diagnostic) => {
                 d2k_common::emit(
                     &codespan_reporting::files::SimpleFile::new(&name, &src),
@@ -171,10 +174,10 @@ fn gather_commands(
             }
         };
 
-        commands.insert(
-            entry.path().file_stem().unwrap().to_str().unwrap().into(),
-            std::sync::Arc::new(d2k_codegen::build(ast, codepage)),
-        );
+        // commands.insert(
+        //     entry.path().file_stem().unwrap().to_str().unwrap().into(),
+        //     std::sync::Arc::new(d2k_codegen::build(ast, codepage)),
+        // );
     }
 
     if will_terminate {

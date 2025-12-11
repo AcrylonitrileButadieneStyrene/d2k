@@ -17,9 +17,9 @@ pub enum Command {
 
         /// Multiple outputs can be specified. Type is inferred from file extension or can be assigned. A dash indicates writing to stdout.
         ///
-        /// Example: `-o tokens.tt -o ast=syntax.tree -o rmu=- -o Map0001.lmu`
-        ///
-        /// Note: the token and abstract syntax trees are only available for single r2ks files, and rmu and lmu are only available for whole projects.
+        /// Examples: 
+        /// - `d2k build example.r2ks -o tokens.tt -o st=syntax.tree`
+        /// - `d2k build example/ -o il=il.lisp -o rmu=- -o Map0001.lmu`
         #[arg(short, action = clap::ArgAction::Append, value_parser = |x: &str| Ok::<_, std::convert::Infallible>(parse_outputs(x)))]
         outputs: Vec<(Stage, PathBuf)>,
 
@@ -31,7 +31,8 @@ pub enum Command {
 fn parse_outputs(output: &str) -> (Stage, PathBuf) {
     let convert = |x| match x {
         "tt" => Stage::Lex,
-        "ast" => Stage::Parse,
+        "st" => Stage::Parse,
+        "il" => Stage::Reduce,
         "rmu" => Stage::Compile, // rusty map unit because i am not using xml
         "lmu" => Stage::Serialize,
         x => {
