@@ -9,6 +9,19 @@ pub enum Stage {
     Serialize,
 }
 
+impl Stage {
+    pub fn from_ext(x: &str) -> Option<Self> {
+        match x {
+            "tt" => Some(Self::Lex),
+            "st" => Some(Self::Parse),
+            "il" => Some(Self::Reduce),
+            "rmu" => Some(Self::Compile), // rusty map unit because i am not using xml
+            "lmu" => Some(Self::Serialize),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct Stages {
     pub lex: Option<PathBuf>,

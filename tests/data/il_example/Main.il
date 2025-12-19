@@ -1,8 +1,14 @@
 (map
     (width 20)
     (height 15)
-    (event (x (const 1)) (y (range 1 2)) (pages $test))
-    (page $test
+    (event 
+        (x (const 1)) 
+        (y (range 1 2)) 
+        (pages 
+            ((command $test))
+        )
+    )
+    (command $test (
         (if (variable.eq (single 2) (const 3))
             (then
                 (switch.enable (single 1))
@@ -40,5 +46,5 @@
             (call.direct 2 10)
             (call.indirect 3 4)
         ))
-    )
+    ))
 )

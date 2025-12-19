@@ -25,8 +25,8 @@ publish = false
 d2k_codegen = { path = "crates/d2k_codegen" }
 d2k_common = { path = "crates/d2k_common" }
 d2k_lexer = { path = "crates/d2k_lexer" }
-d2k_format = { path = "crates/d2k_format" }
-d2k_parser = { path = "crates/d2k_parser" }
+d2k_compose = { path = "crates/d2k_compose" }
+d2k_transpiler = { path = "crates/d2k_transpiler" }
 clap = { version = "4.5.48", features = ["derive"] }
 codespan-reporting = { workspace = true }
 encoding_rs = { workspace = true }

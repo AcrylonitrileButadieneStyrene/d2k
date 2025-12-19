@@ -1,0 +1,16 @@
+[package]
+name = "d2k_compose"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+d2k_common = { path = "../d2k_common" }
+d2k_lexer = { path = "../d2k_lexer" }
+d2k_transpiler = { path = "../d2k_transpiler" }
+codespan-reporting = { workspace = true }
+encoding_rs = { workspace = true }
+itertools = { workspace = true }
+lcf = { workspace = true }
+ron = "0.11.0"
+serde = { workspace = true }
+toml = "0.9.8"

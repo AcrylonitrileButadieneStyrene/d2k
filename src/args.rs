@@ -17,9 +17,11 @@ pub enum Command {
 
         /// Multiple outputs can be specified. Type is inferred from file extension or can be assigned. A dash indicates writing to stdout.
         ///
-        /// Examples: 
-        /// - `d2k build example.r2ks -o tokens.tt -o st=syntax.tree`
-        /// - `d2k build example/ -o il=il.lisp -o rmu=- -o Map0001.lmu`
+        /// Examples:
+        /// 
+        ///   `d2k build example.r2ks -o tokens.tt -o st=syntax.tree`
+        /// 
+        ///   `d2k build example/ -o il=il.lisp -o rmu=- -o Map0001.lmu`
         #[arg(short, action = clap::ArgAction::Append, value_parser = |x: &str| Ok::<_, std::convert::Infallible>(parse_outputs(x)))]
         outputs: Vec<(Stage, PathBuf)>,
 
@@ -29,13 +31,9 @@ pub enum Command {
 }
 
 fn parse_outputs(output: &str) -> (Stage, PathBuf) {
-    let convert = |x| match x {
-        "tt" => Stage::Lex,
-        "st" => Stage::Parse,
-        "il" => Stage::Reduce,
-        "rmu" => Stage::Compile, // rusty map unit because i am not using xml
-        "lmu" => Stage::Serialize,
-        x => {
+    let convert = |x| match Stage::from_ext(x) {
+        Some(x) => x,
+        None => {
             log::error!("Unrecognized extension `{x}` in output path `{output}`");
             std::process::exit(1);
         }

@@ -2,7 +2,6 @@
 
 use std::io::Write;
 
-use d2k_format::ManifestMap;
 use lcf::{ConvertExt as _, raw::lmu::event::commands::Commands};
 
 mod args;
@@ -54,7 +53,7 @@ fn main() {
                         }
 
                         if let Some(path) = stages.parse {
-                            let ast = match d2k_parser::r2ks::parse(tokens) {
+                            let ast = match d2k_transpiler::parse(tokens) {
                                 Ok(ast) => ast,
                                 Err(diagnostic) => {
                                     let name = input.to_str().unwrap();
@@ -83,106 +82,80 @@ fn main() {
                     }
                 }
             } else if input.is_dir() {
-                let manifest = d2k_format::Manifest::parse(
-                    &std::fs::read_to_string(input.join("D2K.toml")).unwrap(),
-                );
+                let expr = d2k_compose::compose(&input);
 
-                let mut events = d2k_format::build(
-                    &std::fs::read_to_string(input.join("Events.ron")).unwrap(),
-                    codepage.to_encoding(),
-                    &gather_commands(&input, codepage.to_encoding()),
-                )
-                .collect::<Vec<_>>();
-
-                let mut map = match manifest.map {
-                    Some(ManifestMap {
-                        extends: Some(extends),
-                        ..
-                    }) if std::fs::exists(&extends).unwrap_or_default() => {
-                        let buf = std::fs::read(&extends).unwrap();
-                        lcf::lmu::LcfMapUnit::read(&mut std::io::Cursor::new(buf)).unwrap()
+                if let Some(path) = &stages.reduce {
+                    if path.eq("-") {
+                        println!("{expr}");
+                    } else {
+                        std::fs::write(path, expr.to_string()).unwrap();
                     }
-                    Some(ManifestMap {
-                        width,
-                        height,
-                        chipset,
-                        ..
-                    }) => lcf::lmu::LcfMapUnit {
-                        width: width.unwrap_or(20),
-                        height: height.unwrap_or(15),
-                        chipset: chipset.unwrap_or(1),
-                        ..Default::default()
-                    },
-                    None => lcf::lmu::LcfMapUnit::default(),
-                };
-                map.events.append(&mut events);
-
-                let size = map.width as usize * map.height as usize;
-                map.lower.resize(size, 0);
-                map.upper.resize(size, 10000);
+                }
 
                 if let Some(path) = stages.compile() {
-                    let output = format!("{map:?}");
-                    if path.eq("-") {
-                        println!("{output}");
-                    } else {
-                        std::fs::write(path, output).unwrap();
-                    }
+                    todo!();
                 }
 
-                if let Some(path) = stages.serialize {
-                    let mut buf = std::io::Cursor::new(Vec::new());
-                    map.write(&mut buf).unwrap();
+                // let manifest = d2k_compose::Manifest::parse(
+                //     &std::fs::read_to_string(input.join("D2K.toml")).unwrap(),
+                // );
 
-                    if path.eq("-") {
-                        std::io::stdout().write_all(&buf.into_inner()).unwrap();
-                    } else {
-                        std::fs::write(path, buf.into_inner()).unwrap();
-                    }
-                }
+                // let mut events = d2k_compose::build(
+                //     &std::fs::read_to_string(input.join("Events.ron")).unwrap(),
+                //     codepage.to_encoding(),
+                //     &gather_commands(&input, codepage.to_encoding()),
+                // )
+                // .collect::<Vec<_>>();
+
+                // let mut map = match manifest.map {
+                //     Some(ManifestMap {
+                //         extends: Some(extends),
+                //         ..
+                //     }) if std::fs::exists(&extends).unwrap_or_default() => {
+                //         let buf = std::fs::read(&extends).unwrap();
+                //         lcf::lmu::LcfMapUnit::read(&mut std::io::Cursor::new(buf)).unwrap()
+                //     }
+                //     Some(ManifestMap {
+                //         width,
+                //         height,
+                //         chipset,
+                //         ..
+                //     }) => lcf::lmu::LcfMapUnit {
+                //         width: width.unwrap_or(20),
+                //         height: height.unwrap_or(15),
+                //         chipset: chipset.unwrap_or(1),
+                //         ..Default::default()
+                //     },
+                //     None => lcf::lmu::LcfMapUnit::default(),
+                // };
+                // map.events.append(&mut events);
+
+                // let size = map.width as usize * map.height as usize;
+                // map.lower.resize(size, 0);
+                // map.upper.resize(size, 10000);
+
+                // if let Some(path) = stages.compile() {
+                //     let output = format!("{map:?}");
+                //     if path.eq("-") {
+                //         println!("{output}");
+                //     } else {
+                //         std::fs::write(path, output).unwrap();
+                //     }
+                // }
+
+                // if let Some(path) = stages.serialize {
+                //     let mut buf = std::io::Cursor::new(Vec::new());
+                //     map.write(&mut buf).unwrap();
+
+                //     if path.eq("-") {
+                //         std::io::stdout().write_all(&buf.into_inner()).unwrap();
+                //     } else {
+                //         std::fs::write(path, buf.into_inner()).unwrap();
+                //     }
+                // }
             } else {
                 log::error!("Input path was not a file nor a symlink");
             }
         }
     }
-}
-
-fn gather_commands(
-    base: &std::path::Path,
-    codepage: &'static encoding_rs::Encoding,
-) -> std::collections::HashMap<std::sync::Arc<str>, std::sync::Arc<Commands>> {
-    let mut will_terminate = false;
-
-    let mut commands = std::collections::HashMap::new();
-    for entry in std::fs::read_dir(base.join("Commands"))
-        .unwrap()
-        .filter_map(Result::ok)
-    {
-        let name = entry.file_name().to_str().unwrap().to_owned();
-        let src = std::fs::read_to_string(entry.path()).unwrap();
-        let tokens = d2k_lexer::R2KSToken::from_file(&name, &src);
-        let il = match d2k_parser::r2ks::parse(tokens) {
-            Ok(il) => il,
-            Err(diagnostic) => {
-                d2k_common::emit(
-                    &codespan_reporting::files::SimpleFile::new(&name, &src),
-                    &diagnostic,
-                )
-                .unwrap();
-                will_terminate = true;
-                continue;
-            }
-        };
-
-        // commands.insert(
-        //     entry.path().file_stem().unwrap().to_str().unwrap().into(),
-        //     std::sync::Arc::new(d2k_codegen::build(ast, codepage)),
-        // );
-    }
-
-    if will_terminate {
-        std::process::exit(1);
-    }
-
-    commands
 }

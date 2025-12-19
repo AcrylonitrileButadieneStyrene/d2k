@@ -7,6 +7,11 @@ use codespan_reporting::{
     },
 };
 
+mod atom;
+mod expr;
+pub use atom::Atom;
+pub use expr::Expr;
+
 pub fn emit<'files, F>(
     files: &'files F,
     diagnostic: &Diagnostic<F::FileId>,

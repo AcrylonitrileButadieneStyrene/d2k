@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-d2k_parser = { path = "../d2k_parser" }
+d2k_transpiler = { path = "../d2k_transpiler" }
 encoding_rs = { workspace = true }
 lcf = { workspace = true }
