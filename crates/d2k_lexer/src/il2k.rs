@@ -1,6 +1,6 @@
 #[derive(Clone, Debug, PartialEq, Eq, logos::Logos)]
 #[logos(skip r"[ \t\r\n\f]+")]
-#[logos(skip r";;[^\n]*")]
+#[logos(skip r";;[^\n]*?")]
 pub enum IL2KToken {
     #[regex(r#"("(\\"|[^"])*")|[^\s()]+"#, |lex| lex.slice().to_owned())]
     Atom(String),

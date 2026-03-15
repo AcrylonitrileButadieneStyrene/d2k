@@ -1,7 +1,7 @@
 #[derive(Clone, Debug, PartialEq, Eq, logos::Logos)]
 #[logos(skip r"[ \t\r\n\f]+")]
-#[logos(skip r"//[^\n]*")]
-#[logos(skip r"#[^\n]*")]
+#[logos(skip r"//[^\n]*?")]
+#[logos(skip r"#[^\n]*?")]
 pub enum R2KSToken {
     #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*", |lex| lex.slice().to_owned())]
     Identifier(String),
@@ -94,7 +94,7 @@ pub enum R2KSToken {
     CommonEvent(u32),
     #[regex(r#""([^"\\]|\\.)*""#, |lex| let str = lex.slice(); str[1..str.len() - 1].to_owned() )]
     String(String),
-    #[regex(r";[^\n]*", |lex| lex.slice()[1..].trim().to_owned())]
+    #[regex(r";[^\n]*?", |lex| lex.slice()[1..].trim().to_owned())]
     Comment(String),
     #[regex(r"\[[0-9]+\]", |lex| let str = lex.slice(); str[1..str.len() - 1].parse().ok())]
     Index(u32),

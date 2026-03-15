@@ -19,7 +19,7 @@ pub fn emit<'files, F>(
 where
     F: Files<'files> + ?Sized,
 {
-    term::emit(
+    term::emit_to_io_write(
         &mut StandardStream::stderr(ColorChoice::Auto),
         &Config {
             ..Default::default()
